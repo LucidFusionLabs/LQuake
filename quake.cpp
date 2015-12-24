@@ -31,7 +31,7 @@ Scene scene;
 MapAsset *quake_map;
 
 // LFL::Application FrameCB
-int Frame(LFL::Window *W, unsigned clicks, unsigned mic_samples, bool cam_sample, int flag) {
+int Frame(LFL::Window *W, unsigned clicks, int flag) {
     W->binds->Repeat(clicks);
     screen->cam->Look();
     quake_map->Draw(*screen->cam);
