@@ -32,23 +32,22 @@ MapAsset *quake_map;
 
 // LFL::Application FrameCB
 int Frame(LFL::Window *W, unsigned clicks, int flag) {
-    W->binds->Repeat(clicks);
-    screen->cam->Look();
-    quake_map->Draw(*screen->cam);
-    // scene.get("arrow")->yawright((double)clicks/500);
-    // scene.draw();
+  W->binds->Repeat(clicks);
+  screen->cam->Look();
+  quake_map->Draw(*screen->cam);
+  // scene.Get("arrow")->YawRight((double)clicks/500);
+  // scene.Draw();
 
-    // Press tick for console
-    screen->gd->DrawMode(DrawMode::_2D);
-    screen->DrawDialogs();
-    return 0;
+  // Press tick for console
+  screen->gd->DrawMode(DrawMode::_2D);
+  screen->DrawDialogs();
+  return 0;
 }
 
 }; // namespace LFL
 using namespace LFL;
 
-extern "C" int main(int argc, const char *argv[]) {
-
+extern "C" void LFAppCreateCB() {
 	app->logfilename = StrCat(LFAppDownloadDir(), "quake.txt");
 	screen->frame_cb = Frame;
 	screen->width = 640;
@@ -58,9 +57,11 @@ extern "C" int main(int argc, const char *argv[]) {
   FLAGS_ksens = 150;
   FLAGS_target_fps = 50;
   FLAGS_lfapp_video = FLAGS_lfapp_input = true;
+}
 
-	if (app->Create(argc, argv, __FILE__)) { app->Free(); return -1; }
-  if (app->Init()) { app->Free(); return -1; }
+extern "C" int main(int argc, const char *argv[]) {
+	if (app->Create(argc, argv, __FILE__, LFAppCreateCB)) { app->Free(); return -1; }
+  if (app->Init())                                      { app->Free(); return -1; }
   screen->gd->default_draw_mode = DrawMode::_3D;
 
 	//  asset.Add(Asset(name, texture,  scale, translate, rotate, geometry, 0, 0));
@@ -93,7 +94,7 @@ extern "C" int main(int argc, const char *argv[]) {
   scene.Add(new Entity("room",  asset("room")));
   scene.Add(new Entity("arrow", asset("arrow"), v3(1, .24, 1)));
 
-  quake_map = Q3MapAsset::Load(StrCat(app->assetdir, "map-20kdm2.pk3"));
+  quake_map = Q3MapAsset::Load(Asset::FileName("map-20kdm2.pk3"));
   screen->cam->pos = v3(1910.18,443.64,410.21);
   screen->cam->ort = v3(-0.05,0.70,0.03);
   screen->cam->up = v3(0.00,-0.04,0.98);
