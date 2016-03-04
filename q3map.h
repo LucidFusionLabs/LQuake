@@ -153,7 +153,7 @@ struct Q3MapAsset : public MapAsset {
 
   static const int LightMapSize = 128*128*3;
 
-  BlockChainAlloc alloc;
+  BlockChainAllocator alloc;
   void *out[kMaxLumps];
   int num[kMaxLumps], *leaffaces, *leafbrushes, *meshverts, vert_id, ind_id, vert_size, ind_size, norm_offset, tex_offset, lightmap_offset;
   Asset *asset, *lightmap;
@@ -163,7 +163,7 @@ struct Q3MapAsset : public MapAsset {
 
     { // first pass to find the .bsp
       ArchiveIter zip(fn.c_str());
-      for (const char *afn = zip.Next(); Running() && afn; afn = zip.Next()) {
+      for (const char *afn = zip.Next(); app->run && afn; afn = zip.Next()) {
         if (!SuffixMatch(afn, ".bsp", false) || !zip.LoadData()) { zip.Skip(); continue; }
         BufferFile bf(zip.buf);
         if (ret->LoadBSP(&bf)) { delete ret; return 0; }
@@ -173,7 +173,7 @@ struct Q3MapAsset : public MapAsset {
 
     { // second pass for rest of the files
       ArchiveIter zip(fn.c_str());
-      for (const char *afnp = zip.Next(); Running() && afnp; afnp = zip.Next()) {
+      for (const char *afnp = zip.Next(); app->run && afnp; afnp = zip.Next()) {
         string afn = afnp, afp = afn.substr(0, afn.rfind('.'));
         for (int i=0, l=ret->num[kTextures]; i<l; i++) if (afp == ret->texture[i].strName && zip.LoadData()) {
           Asset::LoadTexture(zip.buf.data(), afn.c_str(), zip.buf.size(), &ret->asset[i].tex);

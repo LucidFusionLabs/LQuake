@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "lfapp/lfapp.h"
-#include "lfapp/dom.h"
-#include "lfapp/css.h"
-#include "lfapp/flow.h"
-#include "lfapp/gui.h"
+#include "core/app/app.h"
+#include "core/web/dom.h"
+#include "core/web/css.h"
+#include "core/app/flow.h"
+#include "core/app/gui.h"
 #include "q3map.h"
 
 namespace LFL {
@@ -32,22 +32,22 @@ MapAsset *quake_map;
 
 // LFL::Application FrameCB
 int Frame(LFL::Window *W, unsigned clicks, int flag) {
-  W->binds->Repeat(clicks);
-  screen->cam->Look();
-  quake_map->Draw(*screen->cam);
+  W->GetInputController<BindMap>(0)->Repeat(clicks);
+  W->cam->Look(W->gd);
+  quake_map->Draw(*W->cam);
   // scene.Get("arrow")->YawRight((double)clicks/500);
   // scene.Draw();
 
   // Press tick for console
-  screen->gd->DrawMode(DrawMode::_2D);
-  screen->DrawDialogs();
+  W->gd->DrawMode(DrawMode::_2D);
+  W->DrawDialogs();
   return 0;
 }
 
 }; // namespace LFL
 using namespace LFL;
 
-extern "C" void LFAppCreateCB() {
+extern "C" void MyAppInit() {
 	app->logfilename = StrCat(LFAppDownloadDir(), "quake.txt");
 	screen->frame_cb = Frame;
 	screen->width = 640;
@@ -59,35 +59,36 @@ extern "C" void LFAppCreateCB() {
   FLAGS_lfapp_video = FLAGS_lfapp_input = true;
 }
 
-extern "C" int main(int argc, const char *argv[]) {
-	if (app->Create(argc, argv, __FILE__, LFAppCreateCB)) { app->Free(); return -1; }
-  if (app->Init())                                      { app->Free(); return -1; }
-  screen->gd->default_draw_mode = DrawMode::_3D;
+extern "C" int MyAppMain(int argc, const char* const* argv) {
+	if (app->Create(argc, argv, __FILE__)) return -1;
+  if (app->Init())                       return -1;
+  app->StartNewWindow(screen);
 
 	//  asset.Add(Asset(name, texture,  scale, translate, rotate, geometry, 0, 0));
 	asset.Add(Asset("arrow", "", .005, 1, -90, "arrow.obj", 0, 0));
 	asset.Load();
-	app->shell.assets = &asset;
 
 	//  soundasset.Add(SoundAsset(name,   filename,   ringbuf, channels, sample_rate, seconds ));
 	soundasset.Add(SoundAsset("draw", "Draw.wav", 0, 0, 0, 0));
-	soundasset.Load();
-	app->shell.soundassets = &soundasset;
+  soundasset.Load();
 
-  BindMap *binds = screen->binds = new BindMap();
+  screen->gd->default_draw_mode = DrawMode::_3D;
+  screen->shell = make_unique<Shell>(&asset, &soundasset, nullptr);
+
+  BindMap *binds = screen->AddInputController(make_unique<BindMap>());
 	//  binds->Add(Bind(key,        callback));
-	binds->Add(Bind(Key::Return,    Bind::CB(bind(&Shell::grabmode, &app->shell, vector<string>()))));
-	binds->Add(Bind(Key::Escape,    Bind::CB(bind(&Shell::quit,     &app->shell, vector<string>()))));
-	binds->Add(Bind(Key::Backquote, Bind::CB(bind(&Shell::console,  &app->shell, vector<string>()))));
-	binds->Add(Bind(Key::Quote,     Bind::CB(bind(&Shell::console,  &app->shell, vector<string>()))));
-  binds->Add(Bind(Key::LeftShift, Bind::TimeCB(bind(&Entity::RollLeft,   screen->cam, _1))));
-  binds->Add(Bind(Key::Space,     Bind::TimeCB(bind(&Entity::RollRight,  screen->cam, _1))));
-  binds->Add(Bind('w',            Bind::TimeCB(bind(&Entity::MoveFwd,    screen->cam, _1))));
-  binds->Add(Bind('s',            Bind::TimeCB(bind(&Entity::MoveRev,    screen->cam, _1))));
-  binds->Add(Bind('a',            Bind::TimeCB(bind(&Entity::MoveLeft,   screen->cam, _1))));
-  binds->Add(Bind('d',            Bind::TimeCB(bind(&Entity::MoveRight,  screen->cam, _1))));
-  binds->Add(Bind('q',            Bind::TimeCB(bind(&Entity::MoveDown,   screen->cam, _1))));
-  binds->Add(Bind('e',            Bind::TimeCB(bind(&Entity::MoveUp,     screen->cam, _1))));
+	binds->Add(Bind(Key::Return,    Bind::CB(bind(&Shell::grabmode, screen->shell.get(), vector<string>()))));
+	binds->Add(Bind(Key::Escape,    Bind::CB(bind(&Shell::quit,     screen->shell.get(), vector<string>()))));
+	binds->Add(Bind(Key::Backquote, Bind::CB(bind(&Shell::console,  screen->shell.get(), vector<string>()))));
+	binds->Add(Bind(Key::Quote,     Bind::CB(bind(&Shell::console,  screen->shell.get(), vector<string>()))));
+  binds->Add(Bind(Key::LeftShift, Bind::TimeCB(bind(&Entity::RollLeft,   screen->cam.get(), _1))));
+  binds->Add(Bind(Key::Space,     Bind::TimeCB(bind(&Entity::RollRight,  screen->cam.get(), _1))));
+  binds->Add(Bind('w',            Bind::TimeCB(bind(&Entity::MoveFwd,    screen->cam.get(), _1))));
+  binds->Add(Bind('s',            Bind::TimeCB(bind(&Entity::MoveRev,    screen->cam.get(), _1))));
+  binds->Add(Bind('a',            Bind::TimeCB(bind(&Entity::MoveLeft,   screen->cam.get(), _1))));
+  binds->Add(Bind('d',            Bind::TimeCB(bind(&Entity::MoveRight,  screen->cam.get(), _1))));
+  binds->Add(Bind('q',            Bind::TimeCB(bind(&Entity::MoveDown,   screen->cam.get(), _1))));
+  binds->Add(Bind('e',            Bind::TimeCB(bind(&Entity::MoveUp,     screen->cam.get(), _1))));
 
   scene.Add(new Entity("axis",  asset("axis")));
   scene.Add(new Entity("grid",  asset("grid")));
