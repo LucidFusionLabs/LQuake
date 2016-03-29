@@ -47,40 +47,42 @@ int Frame(LFL::Window *W, unsigned clicks, int flag) {
 }; // namespace LFL
 using namespace LFL;
 
-extern "C" void MyAppInit() {
-	app->logfilename = StrCat(LFAppDownloadDir(), "quake.txt");
-	screen->frame_cb = Frame;
-	screen->width = 640;
-	screen->height = 480;
-	screen->caption = "Quake";
-	FLAGS_far_plane = 10000;
+extern "C" void MyAppCreate() {
+  FLAGS_far_plane = 10000;
   FLAGS_ksens = 150;
   FLAGS_target_fps = 50;
   FLAGS_lfapp_video = FLAGS_lfapp_input = true;
+  app = new Application();
+  screen = new Window();
+  screen->frame_cb = Frame;
+  screen->width = 640;
+  screen->height = 480;
+  screen->caption = "Quake";
 }
 
 extern "C" int MyAppMain(int argc, const char* const* argv) {
-	if (app->Create(argc, argv, __FILE__)) return -1;
-  if (app->Init())                       return -1;
+  if (!app) MyAppCreate();
+  if (app->Create(argc, argv, __FILE__)) return -1;
+  if (app->Init()) return -1;
   app->StartNewWindow(screen);
 
-	//  asset.Add(Asset(name, texture,  scale, translate, rotate, geometry, 0, 0));
-	asset.Add(Asset("arrow", "", .005, 1, -90, "arrow.obj", 0, 0));
-	asset.Load();
+  //  asset.Add(Asset(name, texture,  scale, translate, rotate, geometry, 0, 0));
+  asset.Add(Asset("arrow", "", .005, 1, -90, "arrow.obj", 0, 0));
+  asset.Load();
 
-	//  soundasset.Add(SoundAsset(name,   filename,   ringbuf, channels, sample_rate, seconds ));
-	soundasset.Add(SoundAsset("draw", "Draw.wav", 0, 0, 0, 0));
+  //  soundasset.Add(SoundAsset(name,   filename,   ringbuf, channels, sample_rate, seconds ));
+  soundasset.Add(SoundAsset("draw", "Draw.wav", 0, 0, 0, 0));
   soundasset.Load();
 
   screen->gd->default_draw_mode = DrawMode::_3D;
   screen->shell = make_unique<Shell>(&asset, &soundasset, nullptr);
 
   BindMap *binds = screen->AddInputController(make_unique<BindMap>());
-	//  binds->Add(Bind(key,        callback));
-	binds->Add(Bind(Key::Return,    Bind::CB(bind(&Shell::grabmode, screen->shell.get(), vector<string>()))));
-	binds->Add(Bind(Key::Escape,    Bind::CB(bind(&Shell::quit,     screen->shell.get(), vector<string>()))));
-	binds->Add(Bind(Key::Backquote, Bind::CB(bind(&Shell::console,  screen->shell.get(), vector<string>()))));
-	binds->Add(Bind(Key::Quote,     Bind::CB(bind(&Shell::console,  screen->shell.get(), vector<string>()))));
+  //  binds->Add(Bind(key,        callback));
+  binds->Add(Bind(Key::Return,    Bind::CB(bind(&Shell::grabmode, screen->shell.get(), vector<string>()))));
+  binds->Add(Bind(Key::Escape,    Bind::CB(bind(&Shell::quit,     screen->shell.get(), vector<string>()))));
+  binds->Add(Bind(Key::Backquote, Bind::CB(bind(&Shell::console,  screen->shell.get(), vector<string>()))));
+  binds->Add(Bind(Key::Quote,     Bind::CB(bind(&Shell::console,  screen->shell.get(), vector<string>()))));
   binds->Add(Bind(Key::LeftShift, Bind::TimeCB(bind(&Entity::RollLeft,   screen->cam.get(), _1))));
   binds->Add(Bind(Key::Space,     Bind::TimeCB(bind(&Entity::RollRight,  screen->cam.get(), _1))));
   binds->Add(Bind('w',            Bind::TimeCB(bind(&Entity::MoveFwd,    screen->cam.get(), _1))));
