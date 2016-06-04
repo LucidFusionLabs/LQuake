@@ -47,12 +47,12 @@ int Frame(LFL::Window *W, unsigned clicks, int flag) {
 }; // namespace LFL
 using namespace LFL;
 
-extern "C" void MyAppCreate() {
+extern "C" void MyAppCreate(int argc, const char* const* argv) {
   FLAGS_far_plane = 10000;
   FLAGS_ksens = 150;
   FLAGS_target_fps = 50;
-  FLAGS_lfapp_video = FLAGS_lfapp_input = true;
-  app = new Application();
+  FLAGS_enable_video = FLAGS_enable_input = true;
+  app = new Application(argc, argv);
   screen = new Window();
   screen->frame_cb = Frame;
   screen->width = 640;
@@ -60,9 +60,8 @@ extern "C" void MyAppCreate() {
   screen->caption = "Quake";
 }
 
-extern "C" int MyAppMain(int argc, const char* const* argv) {
-  if (!app) MyAppCreate();
-  if (app->Create(argc, argv, __FILE__)) return -1;
+extern "C" int MyAppMain() {
+  if (app->Create(__FILE__)) return -1;
   if (app->Init()) return -1;
   app->StartNewWindow(screen);
 

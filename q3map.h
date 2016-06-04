@@ -316,7 +316,7 @@ struct Q3MapAsset : public MapAsset {
 #endif
 
       screen->gd->TexPointer(2, GraphicsDevice::Float, sizeof(tBSPVertex), tex_offset, (float*)vertex, vert_size, &vert_id, false);
-#if !defined(LFL_IPHONE) && !defined(LFL_ANDROID)
+#ifndef LFL_MOBILE
       screen->gd->DrawElements(GraphicsDevice::Triangles, face_i->numMeshVerts, GraphicsDevice::UnsignedInt, face_i->meshVertIndex * sizeof(int), meshverts, ind_size, &ind_id, false);
 #endif
     }
