@@ -275,13 +275,13 @@ struct Q3MapAsset : public MapAsset {
     return &leaf[id];
   }
 
-  void Draw(const Entity &camera) {
+  void Draw(GraphicsDevice *gd, const Entity &camera) {
     tBSPLeaf *cam_leaf = FindLeaf(camera.pos);
     if (!cam_leaf) FATAL("no leaf: ", cam_leaf);
 
-    screen->gd->EnableTexture();
-    screen->gd->EnableLighting();
-    screen->gd->EnableDepthTest();
+    gd->EnableTexture();
+    gd->EnableLighting();
+    gd->EnableDepthTest();
 
     vector<int> visible_faces;
     unordered_set<int> seen_faces;
@@ -290,34 +290,34 @@ struct Q3MapAsset : public MapAsset {
       if (!IsClusterVisible(visdata, cam_leaf->cluster, leaf_i->cluster)) continue;
       AddFaces(leaf_i, leaffaces, &seen_faces, &visible_faces);
     }
-    for (vector<int>::iterator i = visible_faces.begin(); i != visible_faces.end(); i++) Draw(*i);
+    for (auto i : visible_faces) Draw(gd, i);
   }
 
-  void Draw(int face_index) {
+  void Draw(GraphicsDevice *gd, int face_index) {
     tBSPFace *face_i = &face[face_index];
     if (face_i->textureID >= 0) {
       if (face_i->textureID >= num[kTextures]) FATAL("overflow ", face_i->textureID, " ", num[kTextures]);
-      Scene::Select(&asset[face_i->textureID]);
+      Scene::Select(gd, &asset[face_i->textureID]);
     }
 
     if (face_i->numMeshVerts) {
-      screen->gd->VertexPointer(3, GraphicsDevice::Float, sizeof(tBSPVertex), 0,           (float*)vertex, vert_size, &vert_id, false);
-      screen->gd->NormalPointer(3, GraphicsDevice::Float, sizeof(tBSPVertex), norm_offset, (float*)vertex, vert_size, &vert_id, false);
+      gd->VertexPointer(3, GraphicsDevice::Float, sizeof(tBSPVertex), 0,           (float*)vertex, vert_size, &vert_id, false);
+      gd->NormalPointer(3, GraphicsDevice::Float, sizeof(tBSPVertex), norm_offset, (float*)vertex, vert_size, &vert_id, false);
 
 #ifndef LFL_GLES2
-      screen->gd->ActiveTexture(1);        
+      gd->ActiveTexture(1);        
       if (face_i->lightmapID >= 0) {
         Scene::Select(&lightmap[face_i->lightmapID]);
-        screen->gd->TexPointer(2, GraphicsDevice::Float, sizeof(tBSPVertex), lightmap_offset, (float*)vertex, vert_size, &vert_id, false);
+        gd->TexPointer(2, GraphicsDevice::Float, sizeof(tBSPVertex), lightmap_offset, (float*)vertex, vert_size, &vert_id, false);
       } else {
-        screen->gd->DisableTexture();
+        gd->DisableTexture();
       }
-      screen->gd->ActiveTexture(0);
+      gd->ActiveTexture(0);
 #endif
 
-      screen->gd->TexPointer(2, GraphicsDevice::Float, sizeof(tBSPVertex), tex_offset, (float*)vertex, vert_size, &vert_id, false);
+      gd->TexPointer(2, GraphicsDevice::Float, sizeof(tBSPVertex), tex_offset, (float*)vertex, vert_size, &vert_id, false);
 #ifndef LFL_MOBILE
-      screen->gd->DrawElements(GraphicsDevice::Triangles, face_i->numMeshVerts, GraphicsDevice::UnsignedInt, face_i->meshVertIndex * sizeof(int), meshverts, ind_size, &ind_id, false);
+      gd->DrawElements(GraphicsDevice::Triangles, face_i->numMeshVerts, GraphicsDevice::UnsignedInt, face_i->meshVertIndex * sizeof(int), meshverts, ind_size, &ind_id, false);
 #endif
     }
   }

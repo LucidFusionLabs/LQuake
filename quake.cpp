@@ -33,8 +33,8 @@ MapAsset *quake_map;
 // LFL::Application FrameCB
 int Frame(LFL::Window *W, unsigned clicks, int flag) {
   W->GetInputController<BindMap>(0)->Repeat(clicks);
-  W->cam->Look(W->gd);
-  quake_map->Draw(*W->cam);
+  scene.cam.Look(W->gd);
+  quake_map->Draw(W->gd, scene.cam);
   // scene.Get("arrow")->YawRight((double)clicks/500);
   // scene.Draw();
 
@@ -82,14 +82,14 @@ extern "C" int MyAppMain() {
   binds->Add(Bind(Key::Escape,    Bind::CB(bind(&Shell::quit,     screen->shell.get(), vector<string>()))));
   binds->Add(Bind(Key::Backquote, Bind::CB(bind(&Shell::console,  screen->shell.get(), vector<string>()))));
   binds->Add(Bind(Key::Quote,     Bind::CB(bind(&Shell::console,  screen->shell.get(), vector<string>()))));
-  binds->Add(Bind(Key::LeftShift, Bind::TimeCB(bind(&Entity::RollLeft,   screen->cam.get(), _1))));
-  binds->Add(Bind(Key::Space,     Bind::TimeCB(bind(&Entity::RollRight,  screen->cam.get(), _1))));
-  binds->Add(Bind('w',            Bind::TimeCB(bind(&Entity::MoveFwd,    screen->cam.get(), _1))));
-  binds->Add(Bind('s',            Bind::TimeCB(bind(&Entity::MoveRev,    screen->cam.get(), _1))));
-  binds->Add(Bind('a',            Bind::TimeCB(bind(&Entity::MoveLeft,   screen->cam.get(), _1))));
-  binds->Add(Bind('d',            Bind::TimeCB(bind(&Entity::MoveRight,  screen->cam.get(), _1))));
-  binds->Add(Bind('q',            Bind::TimeCB(bind(&Entity::MoveDown,   screen->cam.get(), _1))));
-  binds->Add(Bind('e',            Bind::TimeCB(bind(&Entity::MoveUp,     screen->cam.get(), _1))));
+  binds->Add(Bind(Key::LeftShift, Bind::TimeCB(bind(&Entity::RollLeft,   &scene.cam, _1))));
+  binds->Add(Bind(Key::Space,     Bind::TimeCB(bind(&Entity::RollRight,  &scene.cam, _1))));
+  binds->Add(Bind('w',            Bind::TimeCB(bind(&Entity::MoveFwd,    &scene.cam, _1))));
+  binds->Add(Bind('s',            Bind::TimeCB(bind(&Entity::MoveRev,    &scene.cam, _1))));
+  binds->Add(Bind('a',            Bind::TimeCB(bind(&Entity::MoveLeft,   &scene.cam, _1))));
+  binds->Add(Bind('d',            Bind::TimeCB(bind(&Entity::MoveRight,  &scene.cam, _1))));
+  binds->Add(Bind('q',            Bind::TimeCB(bind(&Entity::MoveDown,   &scene.cam, _1))));
+  binds->Add(Bind('e',            Bind::TimeCB(bind(&Entity::MoveUp,     &scene.cam, _1))));
 
   scene.Add(new Entity("axis",  asset("axis")));
   scene.Add(new Entity("grid",  asset("grid")));
@@ -97,9 +97,9 @@ extern "C" int MyAppMain() {
   scene.Add(new Entity("arrow", asset("arrow"), v3(1, .24, 1)));
 
   quake_map = Q3MapAsset::Load(Asset::FileName("map-20kdm2.pk3"));
-  screen->cam->pos = v3(1910.18,443.64,410.21);
-  screen->cam->ort = v3(-0.05,0.70,0.03);
-  screen->cam->up = v3(0.00,-0.04,0.98);
+  scene.cam.pos = v3(1910.18,443.64,410.21);
+  scene.cam.ort = v3(-0.05,0.70,0.03);
+  scene.cam.up = v3(0.00,-0.04,0.98);
 
   // start our engine
   return app->Main();
