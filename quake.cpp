@@ -24,9 +24,6 @@
 #include "q3map.h"
 
 namespace LFL {
-AssetMap asset;
-SoundAssetMap soundasset;
-
 Scene scene;
 MapAsset *quake_map;
 
@@ -65,19 +62,19 @@ extern "C" int MyAppMain() {
   if (app->Init()) return -1;
   app->StartNewWindow(screen);
 
-  //  asset.Add(Asset(name, texture,  scale, translate, rotate, geometry, 0, 0));
-  asset.Add(Asset("arrow", "", .005, 1, -90, "arrow.obj", 0, 0));
-  asset.Load();
+  // app->asset.Add(Asset(name, texture,  scale, translate, rotate, geometry,    0, 0));
+  app->asset.Add(Asset("arrow", "",       .005,  1,         -90,    "arrow.obj", 0, 0));
+  app->asset.Load();
 
-  //  soundasset.Add(SoundAsset(name,   filename,   ringbuf, channels, sample_rate, seconds ));
-  soundasset.Add(SoundAsset("draw", "Draw.wav", 0, 0, 0, 0));
-  soundasset.Load();
+  // app->soundasset.Add(SoundAsset(name, filename,   ringbuf, channels, sample_rate, seconds));
+  app->soundasset.Add(SoundAsset("draw",  "Draw.wav", 0,       0,        0,           0      ));
+  app->soundasset.Load();
 
   screen->gd->default_draw_mode = DrawMode::_3D;
-  screen->shell = make_unique<Shell>(&asset, &soundasset, nullptr);
+  screen->shell = make_unique<Shell>();
 
   BindMap *binds = screen->AddInputController(make_unique<BindMap>());
-  //  binds->Add(Bind(key,        callback));
+  binds->move_cb = bind(&Entity::MoveCB, &scene.cam, _1, _2);
   binds->Add(Bind(Key::Return,    Bind::CB(bind(&Shell::grabmode, screen->shell.get(), vector<string>()))));
   binds->Add(Bind(Key::Escape,    Bind::CB(bind(&Shell::quit,     screen->shell.get(), vector<string>()))));
   binds->Add(Bind(Key::Backquote, Bind::CB(bind(&Shell::console,  screen->shell.get(), vector<string>()))));
@@ -91,10 +88,10 @@ extern "C" int MyAppMain() {
   binds->Add(Bind('q',            Bind::TimeCB(bind(&Entity::MoveDown,   &scene.cam, _1))));
   binds->Add(Bind('e',            Bind::TimeCB(bind(&Entity::MoveUp,     &scene.cam, _1))));
 
-  scene.Add(new Entity("axis",  asset("axis")));
-  scene.Add(new Entity("grid",  asset("grid")));
-  scene.Add(new Entity("room",  asset("room")));
-  scene.Add(new Entity("arrow", asset("arrow"), v3(1, .24, 1)));
+  scene.Add(new Entity("axis",  app->asset("axis")));
+  scene.Add(new Entity("grid",  app->asset("grid")));
+  scene.Add(new Entity("room",  app->asset("room")));
+  scene.Add(new Entity("arrow", app->asset("arrow"), v3(1, .24, 1)));
 
   quake_map = Q3MapAsset::Load(Asset::FileName("map-20kdm2.pk3"));
   scene.cam.pos = v3(1910.18,443.64,410.21);
