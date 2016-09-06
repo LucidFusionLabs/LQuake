@@ -50,17 +50,17 @@ extern "C" void MyAppCreate(int argc, const char* const* argv) {
   FLAGS_target_fps = 50;
   FLAGS_enable_video = FLAGS_enable_input = true;
   app = new Application(argc, argv);
-  screen = new Window();
-  screen->frame_cb = Frame;
-  screen->width = 640;
-  screen->height = 480;
-  screen->caption = "Quake";
+  app->focused = new Window();
+  app->focused->frame_cb = Frame;
+  app->focused->width = 640;
+  app->focused->height = 480;
+  app->focused->caption = "Quake";
 }
 
 extern "C" int MyAppMain() {
   if (app->Create(__FILE__)) return -1;
   if (app->Init()) return -1;
-  app->StartNewWindow(screen);
+  app->StartNewWindow(app->focused);
 
   // app->asset.Add(Asset(name, texture,  scale, translate, rotate, geometry,    0, 0));
   app->asset.Add(Asset("arrow", "",       .005,  1,         -90,    "arrow.obj", 0, 0));
@@ -70,8 +70,9 @@ extern "C" int MyAppMain() {
   app->soundasset.Add(SoundAsset("draw",  "Draw.wav", 0,       0,        0,           0      ));
   app->soundasset.Load();
 
+  auto screen = app->focused;
   screen->gd->default_draw_mode = DrawMode::_3D;
-  screen->shell = make_unique<Shell>();
+  screen->shell = make_unique<Shell>(screen);
 
   BindMap *binds = screen->AddInputController(make_unique<BindMap>());
   binds->move_cb = bind(&Entity::MoveCB, &scene.cam, _1, _2);
