@@ -50,7 +50,7 @@ extern "C" void MyAppCreate(int argc, const char* const* argv) {
   FLAGS_target_fps = 50;
   FLAGS_enable_video = FLAGS_enable_input = true;
   app = new Application(argc, argv);
-  app->focused = new Window();
+  app->focused = Window::Create();
   app->focused->frame_cb = Frame;
   app->focused->width = 640;
   app->focused->height = 480;

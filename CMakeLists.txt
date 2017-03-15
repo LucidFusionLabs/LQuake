@@ -1,5 +1,9 @@
 # $Id: CMakeLists.txt 1320 2014-10-26 08:12:52Z justin $
 
+if(LFL_MOBILE)
+  return()
+endif()
+
 lfl_project(quake)
 lfl_add_package(quake SOURCES quake.cpp
                 LINK_LIBRARIES ${LFL_APP_LIB} ${LFL_APP_OS} ${LFL_APP_FRAMEWORK} ${LFL_APP_GRAPHICS}
